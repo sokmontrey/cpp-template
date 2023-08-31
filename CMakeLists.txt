@@ -4,8 +4,9 @@ cmake_minimum_required(VERSION 3.24)
 # to use find_package.
 project(
     mylib
-  LANGUAGES CXX
-  VERSION 0.0.2)
+    LANGUAGES CXX
+    VERSION 0.0.2
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,25 +23,32 @@ include(CMakePackageConfigHelpers)
 # add_subdirectory(source)
 add_library(${PROJECT_NAME}
     # Header and Sources Files --------------------------------------
+    source/mylib/mylib.h
+    source/mylib/mylib.cpp
     # END Header and Source Files -----------------------------------
 )
-add_library(${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+# add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/source>
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # External Library --------------------------------------------------
+# find_package(extern_lib REQUIRED)
+# target_link_libraries(${PROJECT_NAME} extern_lib)
 
 # END External Library ----------------------------------------------
 
+# Test --------------------------------------------------------------
 option(BUILD_TESTING "Build tests" ON)
+include(CTest)
+if(BUILD_TESTING)
+    enable_testing()
+    add_executable(Test test/test_main.cpp)
+endif()
+# END Test ----------------------------------------------------------
 
 # Enable tests.
-include(CTest)
 # BUILD_TESTING option is defined via include(CTest)
-if(BUILD_TESTING)
-  add_subdirectory(test)
-endif()
 
 # build
 export(TARGETS ${PROJECT_NAME} 
