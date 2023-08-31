@@ -3,6 +3,7 @@ set(LIB_NAME "mylib")
 
 add_library(${LIB_NAME} STATIC
     mylib.h
+    mylib.cpp
 )
 
 set(TARGETS ${LIB_NAME})
