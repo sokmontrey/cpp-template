@@ -72,23 +72,23 @@ endif ()
 
 # Packaging ----------------------------------------------------------------------------
 
-# if (BUILD_INSTALLER AND BUILD_PACKAGE)
-#     # The most common cpack variables
-#     set(CPACK_PACKAGE_VENDOR ${PROJECT_NAME})
-#     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}: Description")
-#     set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-#     set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-#     set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-#     set(CPACK_RESOURCE_FILE_LICENSE "${THIS_LIB_DIR}/LICENSE")
-#     set(CPACK_RESOURCE_FILE_README "${THIS_LIB_DIR}/README.md")
+if (BUILD_INSTALLER AND BUILD_PACKAGE)
+    # The most common cpack variables
+    set(CPACK_PACKAGE_VENDOR ${PROJECT_NAME})
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}: Description")
+    set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+    set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+    set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+    set(CPACK_RESOURCE_FILE_LICENSE "${THIS_LIB_DIR}/LICENSE")
+    set(CPACK_RESOURCE_FILE_README "${THIS_LIB_DIR}/README.md")
 
-#     # Set CPACK_SOURCE_IGNORE_FILES with files source packages shouldn't install
-#     # We get these from .gitignore to avoid redundancy
-#     FILE(READ .gitignore GITIGNORE_CONTENTS)
-#     STRING(REGEX REPLACE ";" "\\\\;" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
-#     STRING(REGEX REPLACE "\n" ";" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
-#     set(CPACK_SOURCE_IGNORE_FILES ${GITIGNORE_CONTENTS})
+    # Set CPACK_SOURCE_IGNORE_FILES with files source packages shouldn't install
+    # We get these from .gitignore to avoid redundancy
+    FILE(READ .gitignore GITIGNORE_CONTENTS)
+    STRING(REGEX REPLACE ";" "\\\\;" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
+    STRING(REGEX REPLACE "\n" ";" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
+    set(CPACK_SOURCE_IGNORE_FILES ${GITIGNORE_CONTENTS})
 
-#     # Always include CPack at last
-#     include(CPack)
-# endif ()
+    # Always include CPack at last
+    include(CPack)
+endif ()
