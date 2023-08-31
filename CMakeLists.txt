@@ -43,7 +43,7 @@ option(BUILD_TESTING "Build tests" ON)
 include(CTest)
 if(BUILD_TESTING)
     enable_testing()
-    add_executable(Test test/test_main.cpp)
+    add_subdirectory(test)
 endif()
 # END Test ----------------------------------------------------------
 

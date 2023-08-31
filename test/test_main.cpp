@@ -1,4 +1,4 @@
-#include "../source/mylib/mylib.h"
+#include <mylib/mylib.h>
 
 int main() {
     f();
