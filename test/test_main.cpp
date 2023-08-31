@@ -1,7 +1,6 @@
 #include <mylib/mylib.h>
 
-int main() {
+int main(){
     f();
-
     return 0;
 }

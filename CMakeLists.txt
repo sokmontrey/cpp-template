@@ -1,92 +1,94 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.24.0)
 
-# Configuration of the project needs to set VERSION to generate .cmake files and
-# to use find_package.
-project(
-    mylib
-    LANGUAGES CXX
-    VERSION 0.0.2
-)
+project(mylib VERSION 0.0.1)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(cmake/functions.cmake)
 
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+set(THIS_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Set default library path to install
-include(GNUInstallDirs)
-# Features to generate .cmake file for find_package.
-include(CMakePackageConfigHelpers)
+# Check if project is Master or not ----------------------------------------------
 
-# Build of the library
-# add_subdirectory(source)
-add_library(${PROJECT_NAME}
-    # Header and Sources Files --------------------------------------
-    source/mylib/mylib.h
-    source/mylib/mylib.cpp
-    # END Header and Source Files -----------------------------------
-)
-# add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/source>
-           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+    set(MASTER_PROJECT ON)
+else ()
+    set(MASTER_PROJECT OFF)
+endif ()
 
-# External Library --------------------------------------------------
-# find_package(extern_lib REQUIRED)
-# target_link_libraries(${PROJECT_NAME} extern_lib)
+# Set some booleans according to ${MASTER_PROJECT}
 
-# END External Library ----------------------------------------------
+if(${MASTER_PROJECT})
+    option(BUILD_TESTING "Build Tests" ON)
+else()
+    option(BUILD_TESTING "Build Tests" OFF)
+endif()
 
-# Test --------------------------------------------------------------
-option(BUILD_TESTING "Build tests" ON)
-include(CTest)
+option(BUILD_INSTALLER "Build Installer Target" ${MASTER_PROJECT})
+option(BUILD_PACKAGE "Build Package" ${MASTER_PROJECT})
+
+# Library ------------------------------------------------------------------------
+
+add_subdirectory(source)
+
+# Test ---------------------------------------------------------------------------
+
 if(BUILD_TESTING)
+    include(CTEST)
     enable_testing()
     add_subdirectory(test)
 endif()
-# END Test ----------------------------------------------------------
 
-# Enable tests.
-# BUILD_TESTING option is defined via include(CTest)
+# Installer ----------------------------------------------------------------------
 
-# build
-export(TARGETS ${PROJECT_NAME} 
-       NAMESPACE ${PROJECT_NAME}::
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
-
-# package
 include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
+if (BUILD_INSTALLER)
+    # Set variable where the cmake config is
+    set(CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+    message("CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
+    message("CMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}")
 
-install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
+    # Create ${PROJECT_NAME}ConfigVersion.cmake and install it
+    write_basic_package_version_file(
+            ${PROJECT_NAME}ConfigVersion.cmake
+            VERSION ${PACKAGE_VERSION}
+            COMPATIBILITY SameMajorVersion
+    )
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
-# install
-install(
-    TARGETS ${PROJECT_NAME} 
-    EXPORT ${PROJECT_NAME}Targets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+    # Create ${PROJECT_NAME}Config.cmake from ${PROJECT_NAME}Config.cmake.in
+    set(INCLUDE_INSTALL_DIR include/)
+    set(LIB_INSTALL_DIR lib/)
+    configure_package_config_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in # input file
+            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake    # output file
+            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+            PATH_VARS CMAKE_INSTALL_LIBDIR INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+    )
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+endif ()
 
-install(
-    EXPORT ${PROJECT_NAME}Targets
-    FILE ${PROJECT_NAME}Targets.cmake
-    NAMESPACE ${PROJECT_NAME}::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
+# Packaging ----------------------------------------------------------------------------
 
-# install header
-install(
-    DIRECTORY source/${PROJECT_NAME}  # Adjust the path to your header files
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.h"
-)
+# if (BUILD_INSTALLER AND BUILD_PACKAGE)
+#     # The most common cpack variables
+#     set(CPACK_PACKAGE_VENDOR ${PROJECT_NAME})
+#     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}: Description")
+#     set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+#     set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+#     set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+#     set(CPACK_RESOURCE_FILE_LICENSE "${THIS_LIB_DIR}/LICENSE")
+#     set(CPACK_RESOURCE_FILE_README "${THIS_LIB_DIR}/README.md")
+
+#     # Set CPACK_SOURCE_IGNORE_FILES with files source packages shouldn't install
+#     # We get these from .gitignore to avoid redundancy
+#     FILE(READ .gitignore GITIGNORE_CONTENTS)
+#     STRING(REGEX REPLACE ";" "\\\\;" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
+#     STRING(REGEX REPLACE "\n" ";" GITIGNORE_CONTENTS "${GITIGNORE_CONTENTS}")
+#     set(CPACK_SOURCE_IGNORE_FILES ${GITIGNORE_CONTENTS})
+
+#     # Always include CPack at last
+#     include(CPack)
+# endif ()
